@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreateTransactionSchema, CreateTransactionSchemaType } from "@/schema/transaction";
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 
 interface Props{
     trigger: ReactNode;
@@ -17,6 +17,7 @@ import {zodResolver} from "@hookform/resolvers/zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
+import { Value } from "@radix-ui/react-select";
 
 function CreateTransactionDialog({trigger, type}: Props) {
     const form = useForm<CreateTransactionSchemaType>({
@@ -26,6 +27,13 @@ function CreateTransactionDialog({trigger, type}: Props) {
             date: new Date(),
         },
     });
+
+    const handleCategoryChange = useCallback((value: string) => {
+        form.setValue("category", value);
+        },
+        [form]
+    );
+    
   return <Dialog>
     <DialogTrigger asChild>
         {trigger}
@@ -90,7 +98,8 @@ function CreateTransactionDialog({trigger, type}: Props) {
                                     Category
                                 </FormLabel>
                                 <FormControl>
-                                    <CategoryPicker type={type}/>
+                                    <CategoryPicker type={type} onChange=
+                                    {handleCategoryChange} />
                                 </FormControl>
                                 <FormDescription>
                                     Select a category for this transaction
