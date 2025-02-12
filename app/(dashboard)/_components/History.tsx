@@ -23,14 +23,6 @@ import {
 import { cn } from '@/lib/utils';
 import CountUp from 'react-countup';
 
-interface HistoryData {
-    year: number;
-    month: number;
-    day?: number;
-    income: number;
-    expense: number;
-}
-
 type CustomTooltipProps = TooltipProps<number, string> & {
     currencyFormatter: Intl.NumberFormat;
 };
