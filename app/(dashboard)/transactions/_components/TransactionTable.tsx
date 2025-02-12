@@ -38,9 +38,13 @@ interface Props {
   to: Date;
 }
 
-const emptyData: any[] = [];
+const emptyData: TransactionHistoryRow[] = [];
 
 type TransactionHistoryRow = GetTransactionHistoryResponseType[0];
+
+type CSVRow = {
+  [key: string]: string | number;
+};
 
 const columns: ColumnDef<TransactionHistoryRow>[] = [
   {
@@ -145,7 +149,7 @@ function TransactionTable({ from, to }: Props) {
       ).then((res) => res.json()),
   });
 
-  const handleExportCSV = (data: any[]) => {
+  const handleExportCSV = (data: CSVRow[]) => {
     const csv = generateCsv(csvConfig)(data);
     download(csvConfig)(csv);
   }
@@ -215,7 +219,7 @@ function TransactionTable({ from, to }: Props) {
                 type: row.original.type,
                 amount: row.original.amount,
                 formattedAmount: row.original.formattedAmount,
-                date: row.original.date,
+                date: new Date(row.original.date).toISOString().split('T')[0],
               }));
               handleExportCSV(data);
             }}
@@ -297,7 +301,11 @@ function TransactionTable({ from, to }: Props) {
 
 export default TransactionTable;
 
-function RowActions({ transaction }: { transaction: any }) {
+interface RowActionsProps {
+  transaction: TransactionHistoryRow;
+}
+
+function RowActions({ transaction }: RowActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   return (
