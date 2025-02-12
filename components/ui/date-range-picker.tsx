@@ -283,7 +283,14 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
 
   useEffect(() => {
     checkPreset()
-  }, [range])
+  }, [checkPreset])
+
+  useEffect(() => {
+    if (isOpen) {
+      openedRangeRef.current = range
+      openedRangeCompareRef.current = rangeCompare
+    }
+  }, [isOpen, range, rangeCompare])
 
   const PresetButton = ({
     preset,
@@ -318,13 +325,6 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
       (!a.to || !b.to || a.to.getTime() === b.to.getTime())
     )
   }
-
-  useEffect(() => {
-    if (isOpen) {
-      openedRangeRef.current = range
-      openedRangeCompareRef.current = rangeCompare
-    }
-  }, [isOpen])
 
   return (
     <Popover

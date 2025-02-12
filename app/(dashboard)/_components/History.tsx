@@ -181,6 +181,7 @@ function History({userSettings}:{userSettings:UserSettings}) {
 
 export default History
 
+
 function CustomTooltip({active, payload, formatter}:any){
     if (!active || !payload || payload.length === 0) return null;
 
