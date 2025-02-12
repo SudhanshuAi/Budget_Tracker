@@ -17,7 +17,6 @@ import {zodResolver} from "@hookform/resolvers/zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
-import { Value } from "@radix-ui/react-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -138,7 +137,7 @@ function CreateTransactionDialog({trigger, type}: Props) {
                     <FormField 
                         control={form.control}
                         name="category"
-                        render={({field}) => (
+                        render={() => (
                             <FormItem className="flex flex-col">
                                 <FormLabel>
                                     Category

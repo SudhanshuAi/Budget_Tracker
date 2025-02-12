@@ -6,7 +6,6 @@ import React, { ReactNode } from 'react'
 import { DeleteCategory } from '../_actions/categories';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { AlertTitle } from '@/components/ui/alert';
 import { AlertDialogCancel } from '@radix-ui/react-alert-dialog';
 import { TransactionType } from '@/lib/types';
 
