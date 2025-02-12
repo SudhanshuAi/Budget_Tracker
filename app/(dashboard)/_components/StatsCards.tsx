@@ -76,7 +76,7 @@ export default StatsCards;
 function StatCard({formatter, value, title, icon}: {
   formatter: Intl.NumberFormat;
   icon: ReactNode;
-  title: String;
+  title: string;
   value: number;
 }){
   const formatFn = useCallback(

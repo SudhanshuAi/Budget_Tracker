@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react'
 import Logo, { LogoMobile } from './Logo'
-import { Label } from 'recharts'
-import { link } from 'fs'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link';
 import { Button, buttonVariants } from './ui/button';

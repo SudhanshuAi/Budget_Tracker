@@ -4,7 +4,7 @@ import { CurrencyComboBox } from '@/components/CurrencyComboBox';
 import SkeletonWrapper from '@/components/SkeletonWrapper';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TransactionType } from '@/lib/types';
-import { Category, Transaction } from '@prisma/client';
+import { Category} from '@prisma/client';
 import { useQuery } from '@tanstack/react-query';
 import { PlusSquare, TrashIcon, TrendingDown, TrendingUp } from 'lucide-react';
 import React from 'react';

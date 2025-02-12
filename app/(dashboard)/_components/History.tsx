@@ -14,13 +14,11 @@ import {
     Bar,
     BarChart,
     CartesianGrid,
-    Label,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
-import { Init } from 'v8';
 import { cn } from '@/lib/utils';
 import CountUp from 'react-countup';
 

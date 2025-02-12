@@ -25,7 +25,6 @@ import {
 import SkeletonWrapper from '@/components/SkeletonWrapper';
 import { DataTableColumnHeader } from '@/components/datatable/ColumnHeader';
 import { cn } from '@/lib/utils';
-import { text } from 'stream/consumers';
 import { DataTableFacetedFilter } from '@/components/datatable/FacetedFilters';
 import { Button } from '@/components/ui/button';
 
