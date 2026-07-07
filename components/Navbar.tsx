@@ -12,23 +12,24 @@ import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Menu } from 'lucide-react';
 
 function Navbar() {
-  return (
-    <>
-        <DesktopNavbar />
-        <MobileNavbar />
-    </>
-  )
+    return (
+        <>
+            <DesktopNavbar />
+            <MobileNavbar />
+        </>
+    )
 }
 
 const items = [
-    {label: "Dashboard", link: "/"},
-    {label: "Transactions", link: "/transactions"},
-    {label: "AI Intelligence", link: "/ai-insights"},
-    {label: "Manage", link: "/manage"},
+    { label: "Dashboard", link: "/" },
+    { label: "Transactions", link: "/transactions" },
+    { label: "Insight", link: "/ai-insights" },
+    { label: "LLM", link: "/ai-settings" },
+    { label: "Manage", link: "/manage" },
 ]
 
 
-function MobileNavbar(){
+function MobileNavbar() {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -43,12 +44,12 @@ function MobileNavbar(){
                     <SheetContent className='w-[400px] sm:w-[540px]' side="left">
                         <Logo />
                         <div className="flex flex-col gap-1 pt-4">
-                            {items.map((item)=>(
-                                <NavbarItem 
+                            {items.map((item) => (
+                                <NavbarItem
                                     key={item.label}
                                     link={item.link}
-                                    label={item.label} 
-                                    clickCallback={()=> setIsOpen((prev) => !prev)}
+                                    label={item.label}
+                                    clickCallback={() => setIsOpen((prev) => !prev)}
                                 />
                             ))}
                         </div>
@@ -66,18 +67,18 @@ function MobileNavbar(){
     )
 }
 
-function DesktopNavbar(){
-    return(
+function DesktopNavbar() {
+    return (
         <div className="hidden border-separate border-b bg-background md:block">
             <nav className="container flex items-center justify-between px-8">
                 <div className="flex h-[80px] min-h-[60px] items-center gap-x-4">
                     <Logo />
                     <div className="flex h-full">
-                        {items.map((item)=>(
-                            <NavbarItem 
-                                key = {item.label}
-                                link = {item.link}
-                                label = {item.label}
+                        {items.map((item) => (
+                            <NavbarItem
+                                key={item.label}
+                                link={item.link}
+                                label={item.label}
                             />
                         ))}
                     </div>
@@ -91,7 +92,7 @@ function DesktopNavbar(){
     )
 }
 
-function NavbarItem({link, label, clickCallback}:{
+function NavbarItem({ link, label, clickCallback }: {
     link: string;
     label: string;
     clickCallback?: () => void
@@ -102,11 +103,12 @@ function NavbarItem({link, label, clickCallback}:{
     return (
         <div className="relative flex items-center">
             <Link href={link} className={cn(buttonVariants({
-                variant: "ghost"}),
+                variant: "ghost"
+            }),
                 "w-full justify-start text-lg text-muted-foreground hover:text-foreground",
                 isActive && "text-foreground")}
-                onClick={()=>{
-                    if(clickCallback) clickCallback();
+                onClick={() => {
+                    if (clickCallback) clickCallback();
                 }}
             >
                 {label}

@@ -1,25 +1,38 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { geminiModel } from "@/lib/gemini";
+import prisma from "@/lib/prisma";
+import { chatWithProvider, AiProvider } from "@/lib/ai-providers";
+import { decryptApiKey } from "@/lib/crypto";
 import { getUserTransactionSummary } from "@/lib/ai-helpers";
-import { withRetry } from "@/lib/ai-retry";
 
 export const maxDuration = 60;
 
+async function getProviderConfig(userId: string): Promise<{ provider: AiProvider; apiKey: string }> {
+  const config = await prisma.userAiConfig.findUnique({ where: { userId } });
+  if (config) {
+    return {
+      provider: config.provider as AiProvider,
+      apiKey: decryptApiKey(config.apiKey),
+    };
+  }
+  return {
+    provider: "gemini",
+    apiKey: process.env.GEMINI_API_KEY ?? "",
+  };
+}
+
 export async function POST(request: Request) {
   const user = await currentUser();
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  if (!user) return new Response("Unauthorized", { status: 401 });
 
   const { message, history } = await request.json();
 
-  // Get user data context
   const data = await getUserTransactionSummary(user.id);
-  
+  const { provider, apiKey } = await getProviderConfig(user.id);
+
   const systemPrompt = `
-    You are a personal financial assistant for a Budget Tracker app. 
+    You are a personal financial assistant for a Budget Tracker app.
     A user is asking you questions about their finances.
-    
+
     User Context Summary:
     - Period: ${data.period}
     - Total Income: ${data.totalIncome}
@@ -30,45 +43,25 @@ export async function POST(request: Request) {
 
     Instructions:
     - BE EXTREMELY CONCISE. Use short sentences and bullet points.
-    - Answer the question directly using the provide data.
-    - If no goal is found, suggest ONE clear, actionable goal (e.g., "Aim for ₹5,000 savings").
+    - Answer the question directly using the provided data.
+    - If no goal is found, suggest ONE clear, actionable goal.
     - Use a friendly but efficient tone. Avoid long introductions or generic advice.
     - Use currency symbols from the context (if available, otherwise assume local format).
   `;
 
   try {
-    // Gemini requires history to start with 'user'
-    const formattedHistory = history
-      .filter((h: { role: string; content: string }, index: number) => {
-        if (index === 0 && h.role === "assistant") return false;
-        return true;
-      })
+    // Build history for the provider (excluding opening assistant message)
+    const providerHistory = history
+      .filter((h: { role: string; content: string }, i: number) => !(i === 0 && h.role === "assistant"))
       .map((h: { role: string; content: string }) => ({
-        role: h.role === "user" ? "user" : "model",
-        parts: [{ text: h.content }],
+        role: h.role === "user" ? ("user" as const) : ("model" as const),
+        content: h.content,
       }));
 
-    const chat = geminiModel.startChat({
-      history: formattedHistory,
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: systemPrompt }],
-      },
-    });
-
-    const result = await withRetry(() => chat.sendMessage(message));
-    const response = await result.response;
-    
-    return Response.json({ role: "assistant", content: response.text() });
+    const responseText = await chatWithProvider(systemPrompt, providerHistory, message, provider, apiKey);
+    return Response.json({ role: "assistant", content: responseText });
   } catch (error: unknown) {
     console.error("Chat error:", error);
-    
-    const errorWithStatus = error as { status?: number; response?: { status?: number } };
-    const status = errorWithStatus.status || errorWithStatus.response?.status || 500;
-    const message = status === 503 || status === 429 
-      ? "AI service is currently overloaded. Please try again in a moment."
-      : "Failed to generate chat response";
-
-    return new Response(message, { status });
+    return new Response("Failed to generate chat response", { status: 500 });
   }
 }

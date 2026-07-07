@@ -14,11 +14,6 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-// datasource db {
-//   provider = "sqlite"
-//   url      = "file:./dev.db"
-// }
-
 model UserSettings {
   userId   String @id
   currency String
@@ -73,10 +68,17 @@ model YearHistory{
 model AiInsightCache {
   id         String   @id @default(uuid())
   userId     String
-  type       String   // "summary" | "health_score" | "forecast" | "opportunities"
-  content    String   // JSON string
+  type       String
+  content    String
   createdAt  DateTime @default(now())
   expiresAt  DateTime
 
   @@unique([userId, type])
-}
+}
+
+model UserAiConfig {
+  userId    String   @id
+  provider  String   // "gemini" | "groq" | "openrouter" | "anthropic" | "openai"
+  apiKey    String   // AES-256-GCM encrypted
+  updatedAt DateTime @updatedAt
+}

@@ -1,16 +1,31 @@
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
-import { generateAiInsight } from "@/lib/gemini";
+import { generateWithProvider, AiProvider } from "@/lib/ai-providers";
+import { decryptApiKey } from "@/lib/crypto";
 import { constructInsightPrompt, getUserTransactionSummary } from "@/lib/ai-helpers";
 import { addHours } from "date-fns";
 
 export const maxDuration = 60;
 
+async function getProviderConfig(userId: string): Promise<{ provider: AiProvider; apiKey: string }> {
+  // Check if user has their own key configured
+  const config = await prisma.userAiConfig.findUnique({ where: { userId } });
+  if (config) {
+    return {
+      provider: config.provider as AiProvider,
+      apiKey: decryptApiKey(config.apiKey),
+    };
+  }
+  // Fall back to server's Gemini key
+  return {
+    provider: "gemini",
+    apiKey: process.env.GEMINI_API_KEY ?? "",
+  };
+}
+
 export async function GET(request: Request) {
   const user = await currentUser();
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  if (!user) return new Response("Unauthorized", { status: 401 });
 
   const { searchParams } = new URL(request.url);
   const forceRefresh = searchParams.get("refresh") === "true";
@@ -18,56 +33,40 @@ export async function GET(request: Request) {
   // Check cache
   if (!forceRefresh) {
     const cached = await prisma.aiInsightCache.findUnique({
-      where: {
-        userId_type: {
-          userId: user.id,
-          type: "summary",
-        },
-      },
+      where: { userId_type: { userId: user.id, type: "summary" } },
     });
-
     if (cached && cached.expiresAt > new Date()) {
       return Response.json(JSON.parse(cached.content));
     }
   }
 
+  // Get provider config
+  const { provider, apiKey } = await getProviderConfig(user.id);
+
   // Generate new insights
   const data = await getUserTransactionSummary(user.id);
   const prompt = constructInsightPrompt(data);
-  const aiResponse = await generateAiInsight(prompt);
 
-  if (!aiResponse) {
-    return new Response("AI service is currently busy or timed out. Please try again later.", { status: 503 });
+  let aiResponse: string;
+  try {
+    aiResponse = await generateWithProvider(prompt, provider, apiKey);
+  } catch {
+    return new Response("AI service is currently busy. Please try again later.", { status: 503 });
   }
 
-  // Clean up AI response (sometimes it includes markdown blocks)
   const cleanedResponse = aiResponse.replace(/```json|```/g, "").trim();
-  
+
   try {
     const parsed = JSON.parse(cleanedResponse);
 
-    // Update cache
     await prisma.aiInsightCache.upsert({
-      where: {
-        userId_type: {
-          userId: user.id,
-          type: "summary",
-        },
-      },
-      update: {
-        content: cleanedResponse,
-        expiresAt: addHours(new Date(), 1), // 1 hour TTL
-      },
-      create: {
-        userId: user.id,
-        type: "summary",
-        content: cleanedResponse,
-        expiresAt: addHours(new Date(), 1),
-      },
+      where: { userId_type: { userId: user.id, type: "summary" } },
+      update: { content: cleanedResponse, expiresAt: addHours(new Date(), 1) },
+      create: { userId: user.id, type: "summary", content: cleanedResponse, expiresAt: addHours(new Date(), 1) },
     });
 
     return Response.json(parsed);
   } catch {
-    return Response.json({ error: "Failed to fetch AI insights" }, { status: 500 });
+    return Response.json({ error: "Failed to parse AI response" }, { status: 500 });
   }
 }
