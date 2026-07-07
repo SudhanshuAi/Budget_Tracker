@@ -56,12 +56,13 @@ export default function AiChatAssistant() {
       
       const data = await response.json();
       setMessages((prev) => [...prev, data]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to get response";
       setMessages((prev) => [
         ...prev,
         { 
           role: "assistant", 
-          content: err.message === "AI service is currently overloaded. Please try again in a moment."
+          content: errorMessage === "AI service is currently overloaded. Please try again in a moment."
             ? "⚠️ **Service Busy**: The AI is currently experiencing high demand. I've tried to reconnect, but it's still overloaded. Please wait a minute and try again."
             : "Sorry, I had trouble processing that. Please try again." 
         },

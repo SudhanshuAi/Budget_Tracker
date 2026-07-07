@@ -38,8 +38,9 @@ export default function AiInsightsSidebar() {
       await res.json();
       insightsQuery.refetch();
       toast.success("Insights updated!");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to refresh insights");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to refresh insights";
+      toast.error(errorMessage);
     } finally {
       setIsRefreshing(false);
     }

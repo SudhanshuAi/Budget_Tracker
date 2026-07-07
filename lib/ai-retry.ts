@@ -5,9 +5,10 @@ export async function withRetry<T>(
 ): Promise<T> {
   try {
     return await fn();
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Check for 503 (Service Unavailable) or 429 (Too Many Requests)
-    const status = error.status || (error as any).response?.status;
+    const errorWithStatus = error as { status?: number; response?: { status?: number } };
+    const status = errorWithStatus.status || errorWithStatus.response?.status;
     const isRetryable = status === 503 || status === 429;
 
     if (isRetryable && retries > 0) {

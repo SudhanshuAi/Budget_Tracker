@@ -60,10 +60,11 @@ export async function POST(request: Request) {
     const response = await result.response;
     
     return Response.json({ role: "assistant", content: response.text() });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Chat error:", error);
     
-    const status = error.status || error.response?.status || 500;
+    const errorWithStatus = error as { status?: number; response?: { status?: number } };
+    const status = errorWithStatus.status || errorWithStatus.response?.status || 500;
     const message = status === 503 || status === 429 
       ? "AI service is currently overloaded. Please try again in a moment."
       : "Failed to generate chat response";
