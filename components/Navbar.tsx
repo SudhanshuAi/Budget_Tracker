@@ -23,8 +23,10 @@ function Navbar() {
 const items = [
     {label: "Dashboard", link: "/"},
     {label: "Transactions", link: "/transactions"},
+    {label: "AI Intelligence", link: "/ai-insights"},
     {label: "Manage", link: "/manage"},
 ]
+
 
 function MobileNavbar(){
     const [isOpen, setIsOpen] = useState(false);

@@ -69,3 +69,14 @@ model YearHistory{
 
   @@id([month, year, userId])
 }
+
+model AiInsightCache {
+  id         String   @id @default(uuid())
+  userId     String
+  type       String   // "summary" | "health_score" | "forecast" | "opportunities"
+  content    String   // JSON string
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@unique([userId, type])
+}

@@ -2,12 +2,14 @@
 
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { MAX_DATE_RANGE_DAYS } from '@/lib/constants';
-import { UserSettings } from '@prisma/client'
+import type { UserSettings } from '.prisma/client'
 import { differenceInDays, startOfMonth } from 'date-fns';
 import React, { useState } from 'react'
 import { toast } from 'sonner';
 import StatsCards from './StatsCards';
 import CategoriesStats from './CategoriesStats';
+import BudgetHealthScore from './BudgetHealthScore';
+import AiInsightsSidebar from './AiInsightsSidebar';
 
 function Overview({userSettings}:{ userSettings : UserSettings}) {
     const [dateRange, setDateRange] = useState<{from: Date; to: Date}>({
@@ -16,7 +18,7 @@ function Overview({userSettings}:{ userSettings : UserSettings}) {
     });
   return (
     <>
-        <div className="container flex flex-wrap items-end justify-between gap-2 p-8">
+        <div className="container flex flex-wrap items-end justify-between gap-2 p-8 pb-4">
             <h2 className="text-3xl font-bold">Overview</h2>
             <div className="flex items-center gap-3">
                 <DateRangePicker
@@ -39,7 +41,7 @@ function Overview({userSettings}:{ userSettings : UserSettings}) {
                 />
             </div>
         </div>
-        <div className="container flex w-full flex-col gap-2 p-4">
+        <div className="container flex w-full flex-col gap-6 p-4">
             <StatsCards
                 userSettings={userSettings}
                 from={dateRange.from}
@@ -51,9 +53,19 @@ function Overview({userSettings}:{ userSettings : UserSettings}) {
                 from={dateRange.from}
                 to={dateRange.to}
             />
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="md:col-span-4 h-full">
+                    <BudgetHealthScore />
+                </div>
+                <div className="md:col-span-8 h-full">
+                    <AiInsightsSidebar />
+                </div>
+            </div>
         </div>
     </>
   )
 }
+
 
 export default Overview
