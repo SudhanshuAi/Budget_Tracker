@@ -72,17 +72,17 @@ export function constructInsightPrompt(data: {
     - Category Breakdown: ${JSON.stringify(data.categoryStats)}
     - Recent activity: ${JSON.stringify(data.recentTransactions)}
 
+    IMPORTANT: Return ONLY a valid JSON object. DO NOT include any conversational text, introductions, or markdown formatting outside the JSON block. If you use markdown blocks, ensure they are strictly \`\`\`json.
+    
     Required JSON output format:
     {
-      "summary": "A concise paragraph summarizing their financial health and trends.",
-      "anomalies": ["List any unusual patterns or spikes observed in categories or recent activity"],
-      "opportunities": ["3 actionable tips to save more or optimize spending based on their specific categories"],
-      "healthScore": 0-100 (an integer),
-      "savingsRateText": "e.g., 25% (Good)",
-      "forecastBalance": "e.g., ₹12,500 (+15%)",
-      "healthNarrative": "One sentence about what exactly shaped their score today."
+      "summary": "...",
+      "anomalies": ["...", "..."],
+      "opportunities": ["...", "..."],
+      "healthScore": 85,
+      "savingsRateText": "...",
+      "forecastBalance": "...",
+      "healthNarrative": "..."
     }
-
-    Keep the tone professional, encouraging, and highly specific to the data provided. DO NOT use generic advice.
   `;
 }

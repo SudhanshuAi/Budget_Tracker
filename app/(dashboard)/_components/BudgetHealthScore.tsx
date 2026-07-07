@@ -52,18 +52,22 @@ export default function BudgetHealthScore() {
             <div className="flex flex-col gap-4 flex-grow">
               <div>
                 <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Savings Rate</p>
-                <p className="text-lg font-bold">{data?.savingsRateText || "N/A"}</p>
+                <p className="text-lg font-bold">
+                  {typeof data?.savingsRateText === "string" ? data.savingsRateText : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Month-End Projection</p>
-                <p className="text-lg font-bold">{data?.forecastBalance || "Calculating..."}</p>
+                <p className="text-lg font-bold">
+                  {typeof data?.forecastBalance === "string" ? data.forecastBalance : "Calculating..."}
+                </p>
               </div>
             </div>
           </div>
           
           <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-muted-foreground/10">
             <p className="text-xs leading-relaxed italic text-muted-foreground">
-              {data?.healthNarrative || "Your health score is calculated based on category risks and month-over-month performance."}
+              {typeof data?.healthNarrative === "string" ? data.healthNarrative : "Your health score is calculated based on category risks and performance."}
             </p>
           </div>
         </SkeletonWrapper>

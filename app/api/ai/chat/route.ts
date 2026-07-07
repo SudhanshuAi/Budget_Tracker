@@ -60,8 +60,25 @@ export async function POST(request: Request) {
 
     const responseText = await chatWithProvider(systemPrompt, providerHistory, message, provider, apiKey);
     return Response.json({ role: "assistant", content: responseText });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Chat error:", error);
+    
+    const status = error?.status || error?.response?.status || 500;
+    
+    if (status === 401 || status === 403) {
+      return Response.json({ 
+        error: "Invalid API Key. Please check your credentials in the LLM settings.",
+        role: "assistant"
+      }, { status: 401 });
+    }
+    
+    if (status === 429) {
+      return Response.json({ 
+        error: "Rate limit reached. Try another provider in LLM settings or wait a moment.",
+        role: "assistant"
+      }, { status: 429 });
+    }
+
     return new Response("Failed to generate chat response", { status: 500 });
   }
 }

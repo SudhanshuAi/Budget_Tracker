@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 import ReactMarkdown from 'react-markdown'
 
@@ -50,22 +51,39 @@ export default function AiChatAssistant() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Failed to get response");
+        let errorMsg = "Failed to get response";
+        const status = response.status;
+        try {
+          const errData = await response.json();
+          errorMsg = errData.error || errorMsg;
+        } catch {
+          errorMsg = await response.text() || errorMsg;
+        }
+
+        if (status === 429) {
+          toast.error("Rate limit reached. Try another provider in LLM settings.", {
+            action: { label: "LLM Page", onClick: () => window.location.href = "/ai-settings" }
+          });
+        }
+        
+        throw new Error(errorMsg);
       }
       
       const data = await response.json();
       setMessages((prev) => [...prev, data]);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to get response";
+      
+      let finalContent = "Sorry, I had trouble processing that. Please try again.";
+      if (errorMessage.includes("API Key") || errorMessage.includes("quota") || errorMessage.includes("limit")) {
+        finalContent = `⚠️ **Provider Error**: ${errorMessage}\n\nYou can update your configuration in the [LLM Settings](/ai-settings) page.`;
+      } else if (errorMessage.includes("overloaded")) {
+        finalContent = "⚠️ **Service Busy**: The AI is currently overloaded. Please wait a minute and try again.";
+      }
+
       setMessages((prev) => [
         ...prev,
-        { 
-          role: "assistant", 
-          content: errorMessage === "AI service is currently overloaded. Please try again in a moment."
-            ? "⚠️ **Service Busy**: The AI is currently experiencing high demand. I've tried to reconnect, but it's still overloaded. Please wait a minute and try again."
-            : "Sorry, I had trouble processing that. Please try again." 
-        },
+        { role: "assistant", content: finalContent },
       ]);
     } finally {
       setIsLoading(false);

@@ -1,12 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, TrendingUp, AlertTriangle, Lightbulb, RefreshCw } from "lucide-react";
+import { Sparkles, TrendingUp, AlertTriangle, Lightbulb, RefreshCw, ExternalLink } from "lucide-react";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface AiInsights {
   summary: string;
@@ -21,10 +22,18 @@ export default function AiInsightsSidebar() {
   const insightsQuery = useQuery<AiInsights>({
     queryKey: ["ai-insights"],
     queryFn: async () => {
-      const res = await fetch("/api/ai/insights");
+      // If we are in refreshing state, add the refresh param
+      const url = isRefreshing ? "/api/ai/insights?refresh=true" : "/api/ai/insights";
+      const res = await fetch(url);
       if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Failed to fetch insights");
+        let errorMsg = "Failed to fetch insights";
+        try {
+          const errData = await res.json();
+          errorMsg = errData.error || errorMsg;
+        } catch {
+          errorMsg = await res.text() || errorMsg;
+        }
+        throw new Error(errorMsg);
       }
       return res.json();
     },
@@ -32,15 +41,30 @@ export default function AiInsightsSidebar() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    const toastId = toast.loading("Refreshing insights...");
     try {
       const res = await fetch("/api/ai/insights?refresh=true");
-      if (!res.ok) throw new Error("Failed to refresh");
-      await res.json();
-      insightsQuery.refetch();
-      toast.success("Insights updated!");
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to refresh insights";
-      toast.error(errorMessage);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        if (res.status === 429) {
+          throw new Error("Rate limit reached. Try another provider in LLM settings.");
+        }
+        if (res.status === 401 || res.status === 403) {
+          throw new Error("Invalid API key. Please update it in LLM settings.");
+        }
+        throw new Error(errorData.error || "AI service is currently busy.");
+      }
+      
+      await insightsQuery.refetch();
+      toast.success("Insights updated!", { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message, { 
+        id: toastId,
+        action: {
+          label: "Fix Key",
+          onClick: () => window.location.href = "/ai-settings"
+        }
+      });
     } finally {
       setIsRefreshing(false);
     }
@@ -49,28 +73,30 @@ export default function AiInsightsSidebar() {
   const data = insightsQuery.data;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-amber-400" />
-          AI Insights
-        </h3>
-        <Button
-          variant="ghost"
-          size="sm"
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-indigo-500/10 rounded-lg">
+            <Sparkles className="w-5 h-5 text-indigo-500" />
+          </div>
+          <h2 className="text-xl font-bold tracking-tight">AI Intelligence</h2>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
           onClick={handleRefresh}
-          disabled={isRefreshing || insightsQuery.isLoading}
-          className="h-8 gap-2"
+          disabled={insightsQuery.isLoading || isRefreshing}
+          className="gap-2 text-xs h-8 border-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-500 transition-all duration-300"
         >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          Refresh
+          <RefreshCw className={isRefreshing ? "w-3 h-3 animate-spin" : "w-3 h-3"} />
+          Update Insights
         </Button>
       </div>
 
       <SkeletonWrapper isLoading={insightsQuery.isLoading}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Summary */}
-          <Card className="border-amber-500/20 bg-amber-500/5 h-full">
+          <Card className="border-amber-500/20 bg-amber-500/5 h-full relative overflow-hidden">
             <CardHeader className="py-2 px-4">
               <CardTitle className="text-xs font-semibold flex items-center gap-2">
                 <TrendingUp className="w-3 h-3 text-emerald-500" />
@@ -78,51 +104,73 @@ export default function AiInsightsSidebar() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-[13px] text-muted-foreground leading-snug px-4 pb-4">
-              {data?.summary || "Analyzing your spending patterns..."}
+              {insightsQuery.error ? (
+                <div className="space-y-2">
+                  <p className="text-rose-500 font-medium">
+                    {(insightsQuery.error as any)?.message || "Service error"}
+                  </p>
+                  <Link 
+                    href="/ai-settings" 
+                    className="text-[11px] text-indigo-400 hover:underline flex items-center gap-1"
+                  >
+                    Go to LLM Settings <ExternalLink className="w-3 h-3" />
+                  </Link>
+                </div>
+              ) : (
+                typeof data?.summary === "string" ? data.summary : "Analyzing your spending patterns..."
+              )}
             </CardContent>
           </Card>
 
           {/* Anomalies */}
           <Card className="border-rose-500/20 bg-rose-500/5 h-full">
             <CardHeader className="py-2 px-4">
-              <CardTitle className="text-xs font-semibold flex items-center gap-2 text-rose-500">
-                <AlertTriangle className="w-3 h-3" />
-                Spending Alerts
+              <CardTitle className="text-xs font-semibold flex items-center gap-2">
+                <AlertTriangle className="w-3 h-3 text-rose-500" />
+                Alerts
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <ul className="text-xs space-y-1.5">
-                {data?.anomalies && data.anomalies.length > 0 ? (
-                  data.anomalies.map((a, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-rose-500">•</span>
-                      {a}
-                    </li>
+              <div className="space-y-2">
+                {data?.anomalies && Array.isArray(data.anomalies) && data.anomalies.length > 0 ? (
+                  data.anomalies.map((anomaly, i) => (
+                    <div key={i} className="flex gap-2 items-start group">
+                      <div className="w-1 h-1 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground leading-tight group-hover:text-rose-600 transition-colors">
+                        {typeof anomaly === "string" ? anomaly : JSON.stringify(anomaly)}
+                      </p>
+                    </div>
                   ))
                 ) : (
-                  <p className="text-muted-foreground italic">No unusual spikes detected.</p>
+                  <p className="text-xs text-muted-foreground italic">No unusual activity detected.</p>
                 )}
-              </ul>
+              </div>
             </CardContent>
           </Card>
 
           {/* Opportunities */}
           <Card className="border-sky-500/20 bg-sky-500/5 h-full">
             <CardHeader className="py-2 px-4">
-              <CardTitle className="text-xs font-semibold flex items-center gap-2 text-sky-500">
-                <Lightbulb className="w-3 h-3" />
-                Savings Tips
+              <CardTitle className="text-xs font-semibold flex items-center gap-2">
+                <Lightbulb className="w-3 h-3 text-sky-500" />
+                Tips
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <ul className="text-xs space-y-1.5">
-                {data?.opportunities?.map((o, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="text-sky-500">•</span>
-                    {o}
-                  </li>
-                )) || <p className="text-muted-foreground italic">Generating tips...</p>}
-              </ul>
+              <div className="space-y-2">
+                {data?.opportunities && Array.isArray(data.opportunities) && data.opportunities.length > 0 ? (
+                  data.opportunities.map((opt, i) => (
+                    <div key={i} className="flex gap-2 items-start group">
+                      <div className="w-1 h-1 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground leading-tight group-hover:text-sky-600 transition-colors">
+                        {typeof opt === "string" ? opt : JSON.stringify(opt)}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Efficiency is currently optimal.</p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
