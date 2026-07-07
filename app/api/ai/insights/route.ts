@@ -44,8 +44,8 @@ export async function GET(request: Request) {
   let aiResponse: string;
   try {
     aiResponse = await generateWithProvider(prompt, provider, apiKey);
-  } catch (err: any) {
-    const status = err?.status || err?.response?.status || 503;
+  } catch (err: unknown) {
+    const status = (err as { status?: number })?.status || 503;
     return Response.json({ 
       error: "AI service is currently busy or overloaded. Please try again in a moment.",
       code: "SERVICE_BUSY"
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
     });
 
     return Response.json(parsed);
-  } catch (parseError) {
+  } catch {
     console.error("JSON Parse Error. AI Response was:", aiResponse);
     
     // In case of a hard parse error, return a nice UI message

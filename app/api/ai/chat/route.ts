@@ -60,10 +60,11 @@ export async function POST(request: Request) {
 
     const responseText = await chatWithProvider(systemPrompt, providerHistory, message, provider, apiKey);
     return Response.json({ role: "assistant", content: responseText });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Chat error:", error);
     
-    const status = error?.status || error?.response?.status || 500;
+    // Safely extract status from unknown error
+    const status = (error as { status?: number })?.status || 500;
     
     if (status === 401 || status === 403) {
       return Response.json({ 

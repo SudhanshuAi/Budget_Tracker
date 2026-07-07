@@ -56,9 +56,9 @@ export default function AiInsightsSidebar() {
       // Step 2: Refetch to update local state
       await insightsQuery.refetch();
       toast.success("Insights updated!", { id: toastId });
-    } catch (err: any) {
-      console.error("Refresh error:", err);
-      toast.error(err.message || "Failed to refresh", { 
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to refresh";
+      toast.error(errorMsg, { 
         id: toastId,
         action: { label: "LLM Page", onClick: () => window.location.href = "/ai-settings" }
       });
@@ -104,7 +104,7 @@ export default function AiInsightsSidebar() {
               {insightsQuery.error ? (
                 <div className="space-y-2">
                   <p className="text-rose-500 font-medium">
-                    {(insightsQuery.error as any)?.message || "Service error"}
+                    {insightsQuery.error instanceof Error ? insightsQuery.error.message : "Service error"}
                   </p>
                   <Link 
                     href="/ai-settings" 
