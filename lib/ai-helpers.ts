@@ -45,7 +45,7 @@ export async function getUserTransactionSummary(userId: string, months = 3) {
   }));
 
   return {
-    categoryStats: summary,
+    categoryStats: summary as Record<string, { income: number; expense: number; count: number }>,
     totalIncome,
     totalExpense,
     savingsRate: totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0,
@@ -54,7 +54,14 @@ export async function getUserTransactionSummary(userId: string, months = 3) {
   };
 }
 
-export function constructInsightPrompt(data: any) {
+export function constructInsightPrompt(data: {
+  period: string;
+  totalIncome: number;
+  totalExpense: number;
+  savingsRate: number;
+  categoryStats: Record<string, { income: number; expense: number; count: number }>;
+  recentTransactions: { date: string; amount: number; type: string; category: string }[];
+}) {
   return `
     As a professional financial advisor AI, analyze the following user budget data for the period ${data.period} and provide a JSON response.
     

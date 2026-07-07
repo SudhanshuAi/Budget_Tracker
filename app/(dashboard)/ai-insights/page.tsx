@@ -5,7 +5,7 @@ import History from "../_components/History";
 import BudgetHealthScore from "../_components/BudgetHealthScore";
 import AiInsightsSidebar from "../_components/AiInsightsSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, Info, Target, Sparkles } from "lucide-react";
+import { BrainCircuit, Target, Sparkles } from "lucide-react";
 
 export default async function AiInsightsPage() {
   const user = await currentUser();
@@ -60,8 +60,8 @@ export default async function AiInsightsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-xl leading-relaxed text-foreground/90 italic font-semibold">
-                "You're currently on track to save 12% more than last month. 
-                Keep your 'Dining Out' category below ₹2,000 this week to reach your 'A+' health score."
+                &quot;You&apos;re currently on track to save 12% more than last month. 
+                Keep your &apos;Dining Out&apos; category below ₹2,000 this week to reach your &apos;A+&apos; health score.&quot;
               </p>
               <div className="mt-4 flex items-center gap-2 text-xs font-medium text-indigo-400/80">
                 <Sparkles className="w-3 h-3" />

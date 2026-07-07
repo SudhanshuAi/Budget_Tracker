@@ -53,7 +53,7 @@ export default function AiChatAssistant() {
       
       const data = await response.json();
       setMessages((prev) => [...prev, data]);
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Sorry, I had trouble processing that. Please try again." },
@@ -114,9 +114,9 @@ export default function AiChatAssistant() {
                     )}>
                       <ReactMarkdown 
                         components={{
-                          ul: ({node, ...props}) => <ul className="list-disc ml-4 mt-2" {...props} />,
-                          p: ({node, ...props}) => <p className="leading-tight" {...props} />,
-                          strong: ({node, ...props}) => <strong className="font-black" {...props} />,
+                          ul: ({...props}) => <ul className="list-disc ml-4 mt-2" {...props} />,
+                          p: ({...props}) => <p className="leading-tight" {...props} />,
+                          strong: ({...props}) => <strong className="font-black" {...props} />,
                         }}
                       >
                         {m.content}

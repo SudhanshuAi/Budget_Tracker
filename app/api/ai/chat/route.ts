@@ -36,11 +36,11 @@ export async function POST(request: Request) {
   try {
     // Gemini requires history to start with 'user'
     const formattedHistory = history
-      .filter((h: any, index: number) => {
+      .filter((h: { role: string; content: string }, index: number) => {
         if (index === 0 && h.role === "assistant") return false;
         return true;
       })
-      .map((h: any) => ({
+      .map((h: { role: string; content: string }) => ({
         role: h.role === "user" ? "user" : "model",
         parts: [{ text: h.content }],
       }));
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
     const chat = geminiModel.startChat({
       history: formattedHistory,
       systemInstruction: {
+        role: "system",
         parts: [{ text: systemPrompt }],
       },
     });

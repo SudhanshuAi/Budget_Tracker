@@ -1,5 +1,4 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { generateAiInsight } from "@/lib/gemini";
 import { constructInsightPrompt, getUserTransactionSummary } from "@/lib/ai-helpers";
@@ -66,8 +65,7 @@ export async function GET(request: Request) {
     });
 
     return Response.json(parsed);
-  } catch (e) {
-    console.error("Failed to parse AI response:", cleanedResponse);
-    return new Response("Invalid response format from AI", { status: 500 });
+  } catch {
+    return Response.json({ error: "Failed to fetch AI insights" }, { status: 500 });
   }
 }
