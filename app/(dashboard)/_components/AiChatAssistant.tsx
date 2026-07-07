@@ -75,10 +75,8 @@ export default function AiChatAssistant() {
       const errorMessage = err instanceof Error ? err.message : "Failed to get response";
       
       let finalContent = "Sorry, I had trouble processing that. Please try again.";
-      if (errorMessage.includes("API Key") || errorMessage.includes("quota") || errorMessage.includes("limit")) {
-        finalContent = `⚠️ **Provider Error**: ${errorMessage}\n\nYou can update your configuration in the [LLM Settings](/ai-settings) page.`;
-      } else if (errorMessage.includes("overloaded")) {
-        finalContent = "⚠️ **Service Busy**: The AI is currently overloaded. Please wait a minute and try again.";
+      if (errorMessage.includes("API Key") || errorMessage.includes("quota") || errorMessage.includes("limit") || errorMessage.includes("overloaded") || errorMessage.includes("busy")) {
+        finalContent = `⚠️ **Provider Issue**: ${errorMessage}\n\nYou can switch providers in the [LLM Key Settings](/ai-settings).`;
       }
 
       setMessages((prev) => [

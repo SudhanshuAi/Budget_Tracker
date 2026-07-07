@@ -45,11 +45,19 @@ export async function POST(request: Request) {
     return Response.json({ error: "Provider and API key are required" }, { status: 400 });
   }
 
-  // Validate key with a test call
+  // Validate key with a test call (with 15s timeout)
   try {
-    await generateWithProvider("Say 'OK' in one word.", provider, apiKey);
+    console.log(`[AI Config] Validating ${provider} key...`);
+    const validationPromise = generateWithProvider("Say 'OK' in one word.", provider, apiKey);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Validation timed out")), 15000)
+    );
+
+    await Promise.race([validationPromise, timeoutPromise]);
+    console.log(`[AI Config] ${provider} key validated successfully.`);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Invalid API key";
+    console.error(`[AI Config] Validation failed: ${message}`);
     return Response.json({ error: `Key validation failed: ${message}` }, { status: 400 });
   }
 

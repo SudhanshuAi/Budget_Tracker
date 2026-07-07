@@ -79,6 +79,13 @@ export async function POST(request: Request) {
       }, { status: 429 });
     }
 
+    if (status === 503) {
+      return Response.json({ 
+        error: "Gemini is currently overloaded. Please try again in a few seconds or switch to Groq in the LLM Key settings.",
+        role: "assistant"
+      }, { status: 503 });
+    }
+
     return new Response("Failed to generate chat response", { status: 500 });
   }
 }

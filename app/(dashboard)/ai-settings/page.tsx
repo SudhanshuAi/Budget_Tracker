@@ -45,6 +45,8 @@ export default function AiSettingsPage() {
   const { data: config, isLoading } = useQuery<ConfigData>({
     queryKey: ["ai-config"],
     queryFn: () => fetch("/api/ai/config").then((r) => r.json()),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
   // Pre-select configured provider

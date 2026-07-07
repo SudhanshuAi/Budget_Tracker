@@ -63,26 +63,32 @@ export function constructInsightPrompt(data: {
   recentTransactions: { date: string; amount: number; type: string; category: string }[];
 }) {
   return `
-    As a professional financial advisor AI, analyze the following user budget data for the period ${data.period} and provide a JSON response.
+    As an Elite Financial Wealth Architect and Data Analyst, perform a deep-dive analysis of the following user budget data for the period ${data.period}.
     
-    Data Summary:
-    - Total Income: ${data.totalIncome}
-    - Total Expense: ${data.totalExpense}
-    - Savings Rate: ${data.savingsRate.toFixed(2)}%
-    - Category Breakdown: ${JSON.stringify(data.categoryStats)}
-    - Recent activity: ${JSON.stringify(data.recentTransactions)}
+    Data Summary for Analysis:
+    - Total Inflow: ${data.totalIncome}
+    - Total Outflow: ${data.totalExpense}
+    - Savings Efficiency: ${data.savingsRate.toFixed(2)}%
+    - Category Velocity & Distribution: ${JSON.stringify(data.categoryStats)}
+    - Recent Raw Activity: ${JSON.stringify(data.recentTransactions)}
 
-    IMPORTANT: Return ONLY a valid JSON object. DO NOT include any conversational text, introductions, or markdown formatting outside the JSON block. If you use markdown blocks, ensure they are strictly \`\`\`json.
+    GOAL: Provide sophisticated, high-signal financial intelligence. 
+    1. SUMMARY: Must be 3-5 sentences. Analyze the 'why' behind the numbers, not just the 'what'. Compare income vs expenses and note the sustainability of their current savings rate.
+    2. ANOMALIES: Identify subtle trends, erratic spending in specific categories, or unusual income patterns.
+    3. OPPORTUNITIES: Provide 3 strategic, actionable wealth-building tips. Focus on tax efficiency, high-impact savings, or reducing 'lifestyle creep' in their highest spending categories.
+    4. TONE: Professional, executive-level, and data-driven. Use terms like 'capital allocation', 'burn rate', and 'portfolio health'.
+
+    IMPORTANT: Return ONLY a valid JSON object. DO NOT include markdown outside the JSON block.
     
-    Required JSON output format:
+    Required JSON structure:
     {
-      "summary": "...",
-      "anomalies": ["...", "..."],
-      "opportunities": ["...", "..."],
+      "summary": "Example: Your capital allocation is currently optimized for liquidity, with a robust 93% savings rate driven by high freelance velocity. However, the 'Bill' category shows erratic fluctuation suggests a need for subscription auditing...",
+      "anomalies": ["Category X shows a 15% increase vs last month", "..."],
+      "opportunities": ["Strategic Tip: Reallocate X to a high-yield vehicle...", "..."],
       "healthScore": 85,
-      "savingsRateText": "...",
-      "forecastBalance": "...",
-      "healthNarrative": "..."
+      "savingsRateText": "93% (Excellent)",
+      "forecastBalance": "₹74,200",
+      "healthNarrative": "Your aggressive saving strategy is creating a powerful safety net for future investment."
     }
   `;
 }

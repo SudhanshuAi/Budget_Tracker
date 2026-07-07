@@ -37,33 +37,30 @@ export default function AiInsightsSidebar() {
       }
       return res.json();
     },
+    staleTime: 5 * 60 * 1000, // 5 mins
   });
 
   const handleRefresh = async () => {
+    if (isRefreshing) return;
     setIsRefreshing(true);
     const toastId = toast.loading("Refreshing insights...");
+    
     try {
+      // Step 1: Force backend refresh
       const res = await fetch("/api/ai/insights?refresh=true");
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        if (res.status === 429) {
-          throw new Error("Rate limit reached. Try another provider in LLM settings.");
-        }
-        if (res.status === 401 || res.status === 403) {
-          throw new Error("Invalid API key. Please update it in LLM settings.");
-        }
         throw new Error(errorData.error || "AI service is currently busy.");
       }
       
+      // Step 2: Refetch to update local state
       await insightsQuery.refetch();
       toast.success("Insights updated!", { id: toastId });
     } catch (err: any) {
-      toast.error(err.message, { 
+      console.error("Refresh error:", err);
+      toast.error(err.message || "Failed to refresh", { 
         id: toastId,
-        action: {
-          label: "Fix Key",
-          onClick: () => window.location.href = "/ai-settings"
-        }
+        action: { label: "LLM Page", onClick: () => window.location.href = "/ai-settings" }
       });
     } finally {
       setIsRefreshing(false);
@@ -93,7 +90,7 @@ export default function AiInsightsSidebar() {
         </Button>
       </div>
 
-      <SkeletonWrapper isLoading={insightsQuery.isLoading}>
+      <SkeletonWrapper isLoading={insightsQuery.isLoading && !isRefreshing}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Summary */}
           <Card className="border-amber-500/20 bg-amber-500/5 h-full relative overflow-hidden">
