@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { withRetry } from "./ai-retry";
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY is not set in environment variables");
@@ -10,11 +11,13 @@ export const geminiModel = genAI.getGenerativeModel({ model: "gemini-flash-lates
 
 export async function generateAiInsight(prompt: string) {
   try {
-    const result = await geminiModel.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    return await withRetry(async () => {
+      const result = await geminiModel.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    });
   } catch (error) {
-    console.error("Error generating AI insight:", error);
+    console.error("Error generating AI insight after retries:", error);
     return null;
   }
 }

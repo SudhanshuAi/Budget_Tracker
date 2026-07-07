@@ -22,7 +22,10 @@ export default function AiInsightsSidebar() {
     queryKey: ["ai-insights"],
     queryFn: async () => {
       const res = await fetch("/api/ai/insights");
-      if (!res.ok) throw new Error("Failed to fetch insights");
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to fetch insights");
+      }
       return res.json();
     },
   });
@@ -35,8 +38,8 @@ export default function AiInsightsSidebar() {
       await res.json();
       insightsQuery.refetch();
       toast.success("Insights updated!");
-    } catch {
-      toast.error("Failed to refresh insights");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to refresh insights");
     } finally {
       setIsRefreshing(false);
     }

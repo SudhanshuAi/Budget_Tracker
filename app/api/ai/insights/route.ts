@@ -4,6 +4,8 @@ import { generateAiInsight } from "@/lib/gemini";
 import { constructInsightPrompt, getUserTransactionSummary } from "@/lib/ai-helpers";
 import { addHours } from "date-fns";
 
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const user = await currentUser();
   if (!user) {
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
   const aiResponse = await generateAiInsight(prompt);
 
   if (!aiResponse) {
-    return new Response("Failed to generate AI insights", { status: 500 });
+    return new Response("AI service is currently busy or timed out. Please try again later.", { status: 503 });
   }
 
   // Clean up AI response (sometimes it includes markdown blocks)

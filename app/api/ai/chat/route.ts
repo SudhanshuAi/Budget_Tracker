@@ -1,6 +1,9 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { geminiModel } from "@/lib/gemini";
 import { getUserTransactionSummary } from "@/lib/ai-helpers";
+import { withRetry } from "@/lib/ai-retry";
+
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   const user = await currentUser();
@@ -53,12 +56,18 @@ export async function POST(request: Request) {
       },
     });
 
-    const result = await chat.sendMessage(message);
+    const result = await withRetry(() => chat.sendMessage(message));
     const response = await result.response;
     
     return Response.json({ role: "assistant", content: response.text() });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Chat error:", error);
-    return new Response("Failed to generate chat response", { status: 500 });
+    
+    const status = error.status || error.response?.status || 500;
+    const message = status === 503 || status === 429 
+      ? "AI service is currently overloaded. Please try again in a moment."
+      : "Failed to generate chat response";
+
+    return new Response(message, { status });
   }
 }

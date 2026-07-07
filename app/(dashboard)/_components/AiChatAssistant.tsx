@@ -49,14 +49,22 @@ export default function AiChatAssistant() {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to get response");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to get response");
+      }
       
       const data = await response.json();
       setMessages((prev) => [...prev, data]);
-    } catch {
+    } catch (err: any) {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, I had trouble processing that. Please try again." },
+        { 
+          role: "assistant", 
+          content: err.message === "AI service is currently overloaded. Please try again in a moment."
+            ? "⚠️ **Service Busy**: The AI is currently experiencing high demand. I've tried to reconnect, but it's still overloaded. Please wait a minute and try again."
+            : "Sorry, I had trouble processing that. Please try again." 
+        },
       ]);
     } finally {
       setIsLoading(false);
